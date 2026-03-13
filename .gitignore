@@ -1,0 +1,15 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.streamlit/
+
+llm_data_eval_lab.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/uploads/
+.pycache_tmp/
+
+.DS_Store
