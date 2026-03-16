@@ -1,6 +1,45 @@
 # LLM Data Eval Lab
 
-LLM Data Eval Lab 是一个面向 Search QA 场景的大模型数据评测与 Prompt 优化平台。它的目标不是做聊天机器人 Demo，而是模拟真实 AI 模型数据平台中的核心工作流：数据集管理、Prompt 版本管理、批量实验、自动评测、Bad Case 归因、效果分析与复盘。
+> 一个面向 Search QA 场景的大模型数据评测与 Prompt 优化平台原型。
+> 它不是聊天机器人 Demo，而是把真实 AI 模型数据平台里的关键闭环做成一个可运行的开源项目：数据集管理、Prompt 版本管理、批量实验、自动评测、Bad Case 归因、效果分析、Dashboard 复盘与实验报告导出。
+
+## 为什么这个项目值得看
+
+- 完整闭环：覆盖 `数据集 -> Prompt -> 实验 -> 评测 -> 差例 -> 看板 -> 报告`，不只是单次 LLM 调用。
+- 可直接演示：内置中文 Search QA 演示数据，默认支持 mock 模式，没有真实 API Key 也能完整跑通。
+- 贴近真实工作流：包含 Prompt 版本、批量实验、低分样本分析、指标对比与 SQL 分析脚本。
+- 易于扩展：后端基于 FastAPI，前端基于 Streamlit，保留真实 OpenAI 风格接口与 LLM judge 接入点。
+
+## 核心工作流
+
+```mermaid
+flowchart LR
+    A["数据集管理"] --> B["Prompt 版本管理"]
+    B --> C["批量实验运行"]
+    C --> D["自动评测"]
+    D --> E["Bad Case 归因"]
+    E --> F["Dashboard / SQL 分析"]
+    F --> G["实验报告导出"]
+```
+
+## 界面预览
+
+### 首页总览
+
+![首页总览](docs/screenshots/home.png)
+
+### 核心工作台
+
+| 数据集管理 | Prompt 实验 |
+| --- | --- |
+| ![数据集管理](docs/screenshots/dataset.png) | ![Prompt 实验](docs/screenshots/prompt_experiment.png) |
+| ![实验结果](docs/screenshots/results.png) | ![Bad Case 分析](docs/screenshots/badcase.png) |
+
+### 效果看板
+
+![效果看板](docs/screenshots/dashboard.png)
+
+> 所有截图均来自仓库内本地运行版本，对应文件位于 `docs/screenshots/`。
 
 ## 项目背景
 
@@ -8,7 +47,7 @@ LLM Data Eval Lab 是一个面向 Search QA 场景的大模型数据评测与 Pr
 
 - 如何构建和维护离线评测集
 - 如何对不同 Prompt 版本做批量实验
-- 如何评估模型输出是否正确、完整、 grounded
+- 如何评估模型输出是否正确、完整、grounded
 - 如何快速定位低分样本的失败原因
 - 如何用看板和 SQL 分析结果变化
 
@@ -67,6 +106,12 @@ LLM Data Eval Lab 是一个面向 Search QA 场景的大模型数据评测与 Pr
 - 最近实验趋势
 - 明细数据表格
 
+### 6. 实验报告导出
+
+- 支持选择两个 Prompt 版本生成对比报告
+- 支持导出 Markdown / HTML
+- 支持输出样本量、平均分差值、category 变化和典型案例对比
+
 ## 技术栈
 
 - 后端：Python + FastAPI
@@ -80,6 +125,22 @@ LLM Data Eval Lab 是一个面向 Search QA 场景的大模型数据评测与 Pr
 - 测试：pytest
 
 ## 快速启动
+
+如果你只是想最快把 Demo 跑起来，可以按下面的顺序执行：
+
+```bash
+# terminal 1
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+python scripts/seed_demo_data.py
+uvicorn app.main:app --reload
+
+# terminal 2
+source .venv/bin/activate
+streamlit run frontend/app.py
+```
 
 ### 1. 安装依赖
 
@@ -129,28 +190,6 @@ streamlit run frontend/app.py
 打开：
 
 - 前端页面：[http://localhost:8501](http://localhost:8501)
-
-## 页面截图预留说明
-
-建议在项目完善后，把下面几张图补到 `docs/screenshots/`，并在 README 中插图：
-
-- 首页总览
-- 数据集管理页
-- Prompt 实验页
-- 实验结果页
-- Bad Case 分析页
-- Dashboard 页
-
-建议命名：
-
-- `docs/screenshots/home.png`
-- `docs/screenshots/dataset.png`
-- `docs/screenshots/prompt_experiment.png`
-- `docs/screenshots/results.png`
-- `docs/screenshots/badcase.png`
-- `docs/screenshots/dashboard.png`
-
-仓库中已预留 `docs/screenshots/.gitkeep`，可以直接把截图放入该目录。
 
 ## 数据结构说明
 
@@ -332,15 +371,6 @@ streamlit run frontend/app.py
 
 这些标签的作用不是替代人工分析，而是帮助快速做第一轮失败模式聚类。
 
-## 项目亮点
-
-- 有完整的评测闭环，不是单次模型调用展示
-- 有 mock 模式，保证无 API Key 也能演示
-- 有真实 API 接入预留，具备升级空间
-- 有 SQL 分析脚本，体现数据分析能力
-- 有 Streamlit 前端页面，便于本地演示与功能验证
-- 有 Bad Case 标签体系，体现对“数据优化”工作的理解
-
 ## 可扩展方向
 
 ### 多模态
@@ -398,8 +428,8 @@ data-eval/
 
 ## 开源信息
 
-- License: [MIT](/Users/zhanchao/Desktop/data-eval/LICENSE)
-- 仓库已提供 [.gitignore](/Users/zhanchao/Desktop/data-eval/.gitignore)，默认忽略本地数据库、虚拟环境和上传文件
+- License: [MIT](LICENSE)
+- 仓库已提供 [.gitignore](.gitignore)，默认忽略本地数据库、虚拟环境和上传文件
 
 ## 后续建议
 
@@ -407,4 +437,4 @@ data-eval/
 
 1. 接入真实模型 API，并保留 mock fallback
 2. 补齐单元测试和接口测试
-3. 补实际页面截图和演示视频
+3. 补演示视频、部署说明和 Docker 启动方式
