@@ -1,12 +1,14 @@
 # LLM Data Eval Lab
 
 > 一个面向 Search QA 场景的大模型数据评测与 Prompt 优化平台原型。
+> 新版前端采用深色评测控制台界面，强调实验状态、风险信号和逐样本诊断。
 > 它不是聊天机器人 Demo，而是把真实 AI 模型数据平台里的关键闭环做成一个可运行的开源项目：数据集管理、Prompt 版本管理、批量实验、自动评测、Bad Case 归因、效果分析、Dashboard 复盘与实验报告导出。
 
 ## 为什么这个项目值得看
 
 - 完整闭环：覆盖 `数据集 -> Prompt -> 实验 -> 评测 -> 差例 -> 看板 -> 报告`，不只是单次 LLM 调用。
 - 可直接演示：内置中文 Search QA 演示数据，默认支持 mock 模式，没有真实 API Key 也能完整跑通。
+- 界面重构：前端采用深色控制台式布局，把运行状态、评分信号和分析入口组织在统一工作台里。
 - 贴近真实工作流：包含 Prompt 版本、批量实验、低分样本分析、指标对比与 SQL 分析脚本。
 - 易于扩展：后端基于 FastAPI，前端基于 Streamlit，保留真实 OpenAI 风格接口与 LLM judge 接入点。
 
@@ -24,6 +26,8 @@ flowchart LR
 
 ## 界面预览
 
+以下截图均来自当前仓库本地运行的新版前端，已同步为 GitHub 首页展示版本。
+
 ### 首页总览
 
 ![首页总览](docs/screenshots/home.png)
@@ -39,7 +43,7 @@ flowchart LR
 
 ![效果看板](docs/screenshots/dashboard.png)
 
-> 所有截图均来自仓库内本地运行版本，对应文件位于 `docs/screenshots/`。
+> 所有截图文件位于 `docs/screenshots/`，对应当前深色控制台版本界面。
 
 ## 项目背景
 
