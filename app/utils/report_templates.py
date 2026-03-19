@@ -116,13 +116,19 @@ def render_html_report(report: Dict) -> str:
     for idx, case in enumerate(report["case_rows"], start=1):
         case_html += """
         <section class="case">
-          <h3>案例 {idx}</h3>
-          <p><strong>问题：</strong>{query}</p>
-          <p><strong>category：</strong>{category}</p>
-          <p><strong>A 分数：</strong>{a_score:.4f} &nbsp; <strong>B 分数：</strong>{b_score:.4f} &nbsp; <strong>差值：</strong>{delta:+.4f}</p>
-          <p><strong>A 输出：</strong>{a_answer}</p>
-          <p><strong>B 输出：</strong>{b_answer}</p>
-          <p><strong>参考答案：</strong>{reference_answer}</p>
+          <div class="case-head">
+            <h3>案例 {idx}</h3>
+            <div class="case-scores">
+              <span>A {a_score:.4f}</span>
+              <span>B {b_score:.4f}</span>
+              <span>{delta:+.4f}</span>
+            </div>
+          </div>
+          <p class="case-query"><strong>问题：</strong>{query}</p>
+          <p class="case-meta"><strong>category：</strong>{category}</p>
+          <div class="case-block"><strong>A 输出：</strong><div>{a_answer}</div></div>
+          <div class="case-block"><strong>B 输出：</strong><div>{b_answer}</div></div>
+          <div class="case-block"><strong>参考答案：</strong><div>{reference_answer}</div></div>
         </section>
         """.format(
             idx=idx,
@@ -144,36 +150,273 @@ def render_html_report(report: Dict) -> str:
       <meta charset="utf-8" />
       <title>Prompt 版本对比报告</title>
       <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif; background: #f6f8fb; color: #102033; margin: 0; }}
-        .wrap {{ max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; }}
-        .hero {{ background: linear-gradient(135deg, #0f172a, #1d4ed8); color: #fff; padding: 24px 28px; border-radius: 20px; }}
-        .panel {{ background: #fff; border: 1px solid rgba(16,32,51,0.08); border-radius: 18px; padding: 20px 22px; margin-top: 18px; box-shadow: 0 10px 24px rgba(15,23,42,0.06); }}
-        h1, h2, h3 {{ margin-top: 0; }}
-        table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
-        th, td {{ padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }}
-        th {{ background: #f8fafc; }}
-        .case p {{ line-height: 1.7; }}
+        :root {{
+          --bg-0: #04101d;
+          --bg-1: #0c1f39;
+          --panel: rgba(9, 18, 31, 0.92);
+          --panel-soft: rgba(13, 24, 40, 0.88);
+          --line: rgba(140, 179, 255, 0.16);
+          --ink: #eef6ff;
+          --ink-soft: #a6c1df;
+          --cyan: #72e3ff;
+          --cobalt: #5f7cff;
+          --emerald: #62f2c2;
+          --amber: #ffc977;
+          --rose: #ff7ea7;
+        }}
+        * {{ box-sizing: border-box; }}
+        body {{
+          margin: 0;
+          font-family: "Noto Sans SC", "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          color: var(--ink);
+          background:
+            radial-gradient(circle at 14% 0%, rgba(95, 124, 255, 0.16), transparent 24%),
+            radial-gradient(circle at 88% 18%, rgba(114, 227, 255, 0.14), transparent 20%),
+            linear-gradient(180deg, var(--bg-0) 0%, #071527 36%, var(--bg-1) 100%);
+        }}
+        .wrap {{
+          max-width: 1120px;
+          margin: 0 auto;
+          padding: 32px 20px 72px;
+        }}
+        .hero {{
+          position: relative;
+          overflow: hidden;
+          padding: 28px 30px;
+          border-radius: 28px;
+          border: 1px solid var(--line);
+          background:
+            radial-gradient(circle at 84% 16%, rgba(114, 227, 255, 0.24), transparent 18%),
+            linear-gradient(135deg, rgba(4, 10, 18, 0.96) 0%, rgba(8, 24, 44, 0.94) 42%, rgba(17, 41, 74, 0.94) 100%);
+          box-shadow: 0 24px 64px rgba(0, 6, 18, 0.36);
+        }}
+        .hero .eyebrow {{
+          display: inline-block;
+          padding: 6px 12px;
+          border-radius: 999px;
+          border: 1px solid rgba(114, 227, 255, 0.24);
+          background: rgba(8, 19, 33, 0.62);
+          color: #9fd8ff;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }}
+        .hero h1, .panel h2, .case h3 {{
+          margin: 0;
+          font-family: "Segoe UI", "Noto Sans SC", sans-serif;
+        }}
+        .hero h1 {{
+          margin-top: 14px;
+          font-size: 36px;
+          line-height: 1.08;
+        }}
+        .hero p {{
+          margin: 10px 0 0 0;
+          color: #d7e7fb;
+          line-height: 1.8;
+        }}
+        .summary-grid {{
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+          margin-top: 18px;
+        }}
+        .summary-card {{
+          padding: 16px 18px;
+          border-radius: 20px;
+          border: 1px solid var(--line);
+          background: rgba(8, 18, 31, 0.72);
+        }}
+        .summary-card .label {{
+          color: #9ec8f2;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }}
+        .summary-card .value {{
+          margin-top: 8px;
+          font-size: 30px;
+          font-weight: 800;
+        }}
+        .summary-card .desc {{
+          margin-top: 6px;
+          color: var(--ink-soft);
+          line-height: 1.7;
+        }}
+        .summary-card.cobalt .value {{ color: #b8cbff; }}
+        .summary-card.cyan .value {{ color: #9cecff; }}
+        .summary-card.emerald .value {{ color: #97ffd7; }}
+        .meta-grid {{
+          display: grid;
+          grid-template-columns: 1.08fr 0.92fr;
+          gap: 18px;
+        }}
+        .panel {{
+          margin-top: 18px;
+          padding: 22px 24px;
+          border-radius: 24px;
+          border: 1px solid var(--line);
+          background: var(--panel);
+          box-shadow: 0 18px 48px rgba(0, 8, 20, 0.24);
+        }}
+        .panel h2 {{
+          margin-bottom: 14px;
+          font-size: 24px;
+          color: #f5fbff;
+        }}
+        .panel p, .panel li {{
+          color: var(--ink-soft);
+          line-height: 1.8;
+        }}
+        .panel ul {{
+          margin: 0;
+          padding-left: 18px;
+        }}
+        .meta-list {{
+          display: grid;
+          gap: 12px;
+        }}
+        .meta-item {{
+          padding: 14px 16px;
+          border-radius: 18px;
+          border: 1px solid rgba(140, 179, 255, 0.12);
+          background: var(--panel-soft);
+        }}
+        .meta-item strong {{
+          color: #f1f8ff;
+        }}
+        table {{
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          margin-top: 12px;
+          overflow: hidden;
+          border-radius: 18px;
+        }}
+        th, td {{
+          padding: 12px 14px;
+          text-align: left;
+        }}
+        thead th {{
+          background: rgba(11, 22, 37, 0.98);
+          color: #f5fbff;
+          border-bottom: 1px solid rgba(140, 179, 255, 0.18);
+        }}
+        tbody td {{
+          background: rgba(9, 17, 29, 0.82);
+          color: #dbe9fb;
+          border-bottom: 1px solid rgba(140, 179, 255, 0.08);
+        }}
+        .case-grid {{
+          display: grid;
+          gap: 16px;
+        }}
+        .case {{
+          padding: 18px;
+          border-radius: 22px;
+          border: 1px solid rgba(140, 179, 255, 0.14);
+          background: var(--panel-soft);
+        }}
+        .case-head {{
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          align-items: center;
+        }}
+        .case-scores {{
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }}
+        .case-scores span {{
+          padding: 6px 10px;
+          border-radius: 999px;
+          background: rgba(7, 18, 31, 0.84);
+          border: 1px solid rgba(114, 227, 255, 0.16);
+          color: #d9ecff;
+          font-size: 13px;
+        }}
+        .case-query {{
+          margin-top: 12px;
+        }}
+        .case-meta {{
+          margin-top: 6px;
+        }}
+        .case-block {{
+          margin-top: 12px;
+          padding: 12px 14px;
+          border-radius: 16px;
+          background: rgba(7, 17, 29, 0.72);
+          border: 1px solid rgba(140, 179, 255, 0.08);
+        }}
+        .case-block strong {{
+          display: block;
+          margin-bottom: 6px;
+          color: #f1f8ff;
+        }}
+        .case-block div {{
+          color: var(--ink-soft);
+          line-height: 1.8;
+          white-space: pre-wrap;
+        }}
+        @media (max-width: 900px) {{
+          .summary-grid,
+          .meta-grid {{
+            grid-template-columns: 1fr;
+          }}
+          .case-head {{
+            flex-direction: column;
+            align-items: flex-start;
+          }}
+        }}
       </style>
     </head>
     <body>
       <div class="wrap">
         <div class="hero">
+          <div class="eyebrow">Prompt Comparison Report</div>
           <h1>Prompt 版本对比报告</h1>
           <p>生成时间：{generated_at}</p>
+          <div class="summary-grid">
+            <div class="summary-card cobalt">
+              <div class="label">Paired Samples</div>
+              <div class="value">{paired}</div>
+              <div class="desc">两个版本都能直接对比的样本量。</div>
+            </div>
+            <div class="summary-card cyan">
+              <div class="label">Top Improved</div>
+              <div class="value">{best_category}</div>
+              <div class="desc">当前提升最明显的类别。</div>
+            </div>
+            <div class="summary-card emerald">
+              <div class="label">Most Declined</div>
+              <div class="value">{worst_category}</div>
+              <div class="desc">当前下降最明显的类别。</div>
+            </div>
+          </div>
         </div>
-        <div class="panel">
-          <h2>基本信息</h2>
-          <p><strong>数据集：</strong>{dataset_name}</p>
-          <p><strong>对比对象 A：</strong>{a_name} / {a_version}</p>
-          <p><strong>对比对象 B：</strong>{b_name} / {b_version}</p>
-          <p><strong>Run A：</strong>{run_a_name}（ID={run_a_id}）</p>
-          <p><strong>Run B：</strong>{run_b_name}（ID={run_b_id}）</p>
-        </div>
-        <div class="panel">
-          <h2>样本量</h2>
-          <p>A 样本量：{sample_a}</p>
-          <p>B 样本量：{sample_b}</p>
-          <p>可直接对比样本量：{paired}</p>
+        <div class="meta-grid">
+          <div class="panel">
+            <h2>基本信息</h2>
+            <div class="meta-list">
+              <div class="meta-item"><strong>数据集：</strong>{dataset_name}</div>
+              <div class="meta-item"><strong>对比对象 A：</strong>{a_name} / {a_version}</div>
+              <div class="meta-item"><strong>对比对象 B：</strong>{b_name} / {b_version}</div>
+              <div class="meta-item"><strong>Run A：</strong>{run_a_name}（ID={run_a_id}）</div>
+              <div class="meta-item"><strong>Run B：</strong>{run_b_name}（ID={run_b_id}）</div>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>样本量</h2>
+            <div class="meta-list">
+              <div class="meta-item"><strong>A 样本量：</strong>{sample_a}</div>
+              <div class="meta-item"><strong>B 样本量：</strong>{sample_b}</div>
+              <div class="meta-item"><strong>可直接对比样本量：</strong>{paired}</div>
+              <div class="meta-item"><strong>最佳类别：</strong>{best_category}（{best_delta:+.4f}）</div>
+            </div>
+          </div>
         </div>
         <div class="panel">
           <h2>平均分对比</h2>
@@ -191,7 +434,7 @@ def render_html_report(report: Dict) -> str:
         </div>
         <div class="panel">
           <h2>典型案例对比</h2>
-          {case_html}
+          <div class="case-grid">{case_html}</div>
         </div>
         <div class="panel">
           <h2>结论与建议</h2>

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from app.utils.scoring import format_compliance_score, groundedness_ratio, token_overlap_ratio
 
@@ -31,8 +31,8 @@ class Evaluator:
             "overall_score": round(overall_score, 4),
         }
 
-    def build_judge_prompt(self, sample, generated_answer: str) -> str:
-        return (
+    def build_judge_prompt(self, sample, generated_answer: str, benchmark_focus: Optional[str] = None) -> str:
+        prompt = (
             "Evaluate the following search QA answer.\n"
             "Question: {query}\n"
             "Context: {context}\n"
@@ -45,3 +45,6 @@ class Evaluator:
             reference=sample.reference_answer,
             candidate=generated_answer,
         )
+        if benchmark_focus:
+            prompt += "\n\nAdditional benchmark guidance:\n{guidance}".format(guidance=benchmark_focus)
+        return prompt

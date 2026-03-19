@@ -79,6 +79,101 @@ def get_demo_samples() -> List[Dict]:
     ]
 
 
+def get_hidden_finance_benchmark_samples() -> List[Dict]:
+    return [
+        {
+            "query": "基金近三个月收益下降，现在适合继续定投吗？",
+            "context": "基金短期收益会受市场波动影响，是否继续定投需要结合投资期限、风险承受能力和组合目标判断。过往表现不代表未来收益。",
+            "reference_answer": "是否继续定投需要结合风险承受能力、投资期限和组合目标综合判断，不能只根据短期收益变化决定。",
+            "category": "投顾",
+            "difficulty": "hard",
+            "tags": ["finance", "investment", "risk_disclosure"],
+            "notes": "shadow_benchmark: 投顾场景，需要风险提示与非确定性表达。",
+        },
+        {
+            "query": "这只理财产品会不会保本？",
+            "context": "净值型理财产品通常不承诺保本保收益，收益会随着底层资产净值变化而波动。",
+            "reference_answer": "净值型理财产品通常不承诺保本保收益，需关注产品说明书和风险等级。",
+            "category": "金融客服",
+            "difficulty": "medium",
+            "tags": ["finance", "wealth_management", "compliance"],
+            "notes": "shadow_benchmark: 金融合规表达。",
+        },
+        {
+            "query": "用户月收入不稳定但申请大额消费贷，风控上应该关注什么？",
+            "context": "收入稳定性、负债水平、历史逾期记录和反欺诈信号都会影响授信决策。单一维度不能直接决定审批结果。",
+            "reference_answer": "应综合关注收入稳定性、负债水平、历史逾期和反欺诈信号，避免仅凭单一指标判断。",
+            "category": "风控",
+            "difficulty": "hard",
+            "tags": ["finance", "risk_control", "credit"],
+            "notes": "shadow_benchmark: 风控评估场景。",
+        },
+        {
+            "query": "信用卡临时额度提升后是不是说明用户风险很低？",
+            "context": "临时额度提升可能基于短期交易行为、节日营销或综合风险策略，并不等同于长期风险较低。",
+            "reference_answer": "临时额度提升不等于长期风险很低，需要结合更完整的风险信号判断。",
+            "category": "风控",
+            "difficulty": "medium",
+            "tags": ["finance", "risk_control", "credit_card"],
+            "notes": "shadow_benchmark: 防止过度推断。",
+        },
+        {
+            "query": "用户问‘收益更高的基金是不是更好’，应该怎么回答？",
+            "context": "基金选择不能只看收益，还要看风险等级、回撤、投资期限、持仓结构和用户风险偏好。高收益往往伴随更高波动。",
+            "reference_answer": "不能只看收益，需要结合风险等级、波动、回撤和用户风险偏好综合判断。",
+            "category": "投顾",
+            "difficulty": "hard",
+            "tags": ["finance", "investment", "risk_disclosure"],
+            "notes": "shadow_benchmark: 投资建议需要风险适配。",
+        },
+        {
+            "query": "逾期一天会不会立刻进入黑名单？",
+            "context": "是否进入黑名单取决于机构规则、逾期严重程度、历史表现和具体产品策略，不能一概而论。",
+            "reference_answer": "逾期一天不一定会立刻进入黑名单，需要结合机构规则和具体情况判断。",
+            "category": "风控",
+            "difficulty": "medium",
+            "tags": ["finance", "risk_control", "delinquency"],
+            "notes": "shadow_benchmark: 风控规则答复需避免绝对化。",
+        },
+        {
+            "query": "稳健型用户能不能直接配高波动权益基金？",
+            "context": "资产配置需要匹配风险承受能力。稳健型用户通常应优先考虑低波动资产，高波动权益基金可能不匹配其风险偏好。",
+            "reference_answer": "需要结合用户风险承受能力做适配，稳健型用户通常不应直接重配高波动权益基金。",
+            "category": "投顾",
+            "difficulty": "hard",
+            "tags": ["finance", "investment", "asset_allocation"],
+            "notes": "shadow_benchmark: 用户适当性与风险偏好匹配。",
+        },
+        {
+            "query": "反欺诈模型命中后，是否就能直接拒绝所有申请？",
+            "context": "反欺诈命中是重要风险信号，但是否拒绝还需结合置信度、规则解释性、人工复核与其他信号综合判断。",
+            "reference_answer": "不能直接一刀切拒绝，应结合置信度、其他风险信号和人工复核综合决策。",
+            "category": "风控",
+            "difficulty": "hard",
+            "tags": ["finance", "risk_control", "fraud"],
+            "notes": "shadow_benchmark: 自动评估与人工复核结合。",
+        },
+        {
+            "query": "用户想知道某基金未来一定会涨，该如何回答？",
+            "context": "基金未来表现受市场环境、行业景气度和组合管理等多种因素影响，没有任何基金能够保证未来一定上涨。",
+            "reference_answer": "不能保证基金未来一定上涨，应提示市场波动风险并建议结合风险偏好判断。",
+            "category": "投顾",
+            "difficulty": "medium",
+            "tags": ["finance", "investment", "compliance"],
+            "notes": "shadow_benchmark: 检查是否出现保收益、稳赚等违规表述。",
+        },
+        {
+            "query": "白条额度被下调通常有哪些可能原因？",
+            "context": "额度调整可能与近期交易行为变化、还款表现、风险策略更新和整体授信政策有关，具体原因需结合账户情况判断。",
+            "reference_answer": "额度下调可能与交易行为、还款表现、风险策略或授信政策变化有关，需结合账户情况具体分析。",
+            "category": "金融客服",
+            "difficulty": "medium",
+            "tags": ["finance", "credit", "jd_finance"],
+            "notes": "shadow_benchmark: 京东金融相关客服问答。",
+        },
+    ]
+
+
 def get_demo_prompts() -> List[Dict]:
     return [
         {

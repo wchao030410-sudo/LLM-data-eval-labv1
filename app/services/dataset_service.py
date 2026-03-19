@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Dataset, Sample
 from app.schemas.dataset import DatasetCreate, DatasetUpdate, SampleCreate, SampleUpdate
+from app.utils.internal_data import HIDDEN_DATASET_STATUS
 
 
 class DatasetService:
@@ -20,8 +21,11 @@ class DatasetService:
         self.session.flush()
         return dataset
 
-    def list_datasets(self) -> List[Dataset]:
-        return list(self.session.scalars(select(Dataset).order_by(Dataset.created_at.desc())))
+    def list_datasets(self, include_hidden: bool = False) -> List[Dataset]:
+        stmt = select(Dataset).order_by(Dataset.created_at.desc())
+        if not include_hidden:
+            stmt = stmt.where(Dataset.status != HIDDEN_DATASET_STATUS)
+        return list(self.session.scalars(stmt))
 
     def get_dataset(self, dataset_id: int) -> Optional[Dataset]:
         return self.session.get(Dataset, dataset_id)

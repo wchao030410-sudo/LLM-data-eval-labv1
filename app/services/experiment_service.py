@@ -4,14 +4,16 @@ from typing import Dict, List, Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import EvaluationResult, Experiment, ExperimentRun, PromptVersion
+from app.models import Dataset, EvaluationResult, Experiment, ExperimentRun, PromptVersion
 from app.schemas.experiment import ExperimentCreate, ExperimentUpdate
 from app.services.badcase_service import BadcaseService
+from app.services.benchmark_service import BenchmarkService
 from app.services.dataset_service import DatasetService
 from app.services.evaluation_service import Evaluator
 from app.services.llm_client import ModelClient
 from app.services.prompt_service import PromptService
 from app.utils.scoring import average_metric
+from app.utils.internal_data import HIDDEN_DATASET_STATUS
 
 
 class ExperimentService:
@@ -20,6 +22,7 @@ class ExperimentService:
         self.dataset_service = DatasetService(session)
         self.prompt_service = PromptService(session)
         self.evaluator = Evaluator()
+        self.benchmark_service = BenchmarkService()
         self.badcase_service = BadcaseService(session)
         self.model_client = ModelClient()
 
@@ -30,7 +33,12 @@ class ExperimentService:
         return experiment
 
     def list_experiments(self) -> List[Experiment]:
-        stmt = select(Experiment).order_by(Experiment.created_at.desc())
+        stmt = (
+            select(Experiment)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
+            .order_by(Experiment.created_at.desc())
+        )
         return list(self.session.scalars(stmt))
 
     def get_experiment(self, experiment_id: int) -> Optional[Experiment]:
@@ -55,7 +63,13 @@ class ExperimentService:
         return experiment
 
     def list_runs(self) -> List[ExperimentRun]:
-        stmt = select(ExperimentRun).order_by(ExperimentRun.created_at.desc())
+        stmt = (
+            select(ExperimentRun)
+            .join(Experiment, Experiment.id == ExperimentRun.experiment_id)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
+            .order_by(ExperimentRun.created_at.desc())
+        )
         return list(self.session.scalars(stmt))
 
     def get_run(self, run_id: int) -> Optional[ExperimentRun]:
@@ -133,13 +147,19 @@ class ExperimentService:
                 )
                 generated_answer = generation["text"]
                 scores = self.evaluator.evaluate(sample, generated_answer)
+                benchmark_context = self.benchmark_service.build_context(sample, generated_answer, scores)
                 judge_detail = {
                     "generation_mode": generation["mode"],
                     "judge_mode": experiment.judge_mode,
+                    **benchmark_context,
                 }
                 if experiment.judge_mode == "llm_judge":
-                    judge_prompt = self.evaluator.build_judge_prompt(sample, generated_answer)
-                    judge_detail.update(self.model_client.judge_answer(judge_prompt, model_name=experiment.target_model))
+                    judge_prompt = self.evaluator.build_judge_prompt(
+                        sample,
+                        generated_answer,
+                        benchmark_focus=self.benchmark_service.review_focus(benchmark_context),
+                    )
+                    judge_detail["llm_judge"] = self.model_client.judge_answer(judge_prompt, model_name=experiment.target_model)
 
                 result = EvaluationResult(
                     experiment_run_id=run.id,

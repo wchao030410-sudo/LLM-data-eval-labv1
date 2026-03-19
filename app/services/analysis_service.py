@@ -3,7 +3,8 @@ from typing import Dict, List
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import EvaluationResult, ExperimentRun
+from app.models import Dataset, EvaluationResult, Experiment, ExperimentRun
+from app.utils.internal_data import HIDDEN_DATASET_STATUS
 
 
 class AnalysisService:
@@ -24,6 +25,9 @@ class AnalysisService:
                 ExperimentRun.avg_hallucination_risk,
                 ExperimentRun.run_status,
             )
+            .join(Experiment, Experiment.id == ExperimentRun.experiment_id)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
             .order_by(ExperimentRun.created_at.desc())
         )
         rows = self.session.execute(stmt).all()
@@ -44,10 +48,33 @@ class AnalysisService:
         ]
 
     def overview(self) -> Dict:
-        total_runs = self.session.scalar(select(func.count(ExperimentRun.id))) or 0
-        total_results = self.session.scalar(select(func.count(EvaluationResult.id))) or 0
-        avg_score = self.session.scalar(select(func.avg(EvaluationResult.overall_score))) or 0.0
-        avg_hallucination = self.session.scalar(select(func.avg(EvaluationResult.hallucination_risk))) or 0.0
+        total_runs = self.session.scalar(
+            select(func.count(ExperimentRun.id))
+            .join(Experiment, Experiment.id == ExperimentRun.experiment_id)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
+        ) or 0
+        total_results = self.session.scalar(
+            select(func.count(EvaluationResult.id))
+            .join(ExperimentRun, ExperimentRun.id == EvaluationResult.experiment_run_id)
+            .join(Experiment, Experiment.id == ExperimentRun.experiment_id)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
+        ) or 0
+        avg_score = self.session.scalar(
+            select(func.avg(EvaluationResult.overall_score))
+            .join(ExperimentRun, ExperimentRun.id == EvaluationResult.experiment_run_id)
+            .join(Experiment, Experiment.id == ExperimentRun.experiment_id)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
+        ) or 0.0
+        avg_hallucination = self.session.scalar(
+            select(func.avg(EvaluationResult.hallucination_risk))
+            .join(ExperimentRun, ExperimentRun.id == EvaluationResult.experiment_run_id)
+            .join(Experiment, Experiment.id == ExperimentRun.experiment_id)
+            .join(Dataset, Dataset.id == Experiment.dataset_id)
+            .where(Dataset.status != HIDDEN_DATASET_STATUS)
+        ) or 0.0
         return {
             "total_runs": int(total_runs),
             "total_results": int(total_results),

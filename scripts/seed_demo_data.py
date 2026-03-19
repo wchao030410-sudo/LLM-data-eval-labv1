@@ -12,7 +12,8 @@ from app.schemas.prompt import PromptCreate, PromptVersionCreate
 from app.services.badcase_service import BadcaseService
 from app.services.dataset_service import DatasetService
 from app.services.prompt_service import PromptService
-from app.utils.demo_data import get_demo_prompts, get_demo_samples
+from app.utils.demo_data import get_demo_prompts, get_demo_samples, get_hidden_finance_benchmark_samples
+from app.utils.internal_data import HIDDEN_DATASET_STATUS
 
 
 LEGACY_DATASET_NAMES = {"demo_search_qa"}
@@ -76,6 +77,25 @@ def seed_dataset() -> None:
         dataset_service.bulk_create_samples(dataset.id, payloads)
 
 
+def seed_hidden_finance_dataset() -> None:
+    with get_session() as session:
+        dataset_service = DatasetService(session)
+        existing = session.query(Dataset).filter(Dataset.name == "金融影子评测集").first()
+        if existing:
+            return
+        dataset = dataset_service.create_dataset(
+            DatasetCreate(
+                name="金融影子评测集",
+                description="内部 shadow benchmark，用于金融问答、风控和投顾评测，不在默认产品列表展示。",
+                source_type="internal_demo",
+                source_path="generated://shadow_finance_eval",
+                status=HIDDEN_DATASET_STATUS,
+            )
+        )
+        payloads = [SampleCreate(**item) for item in get_hidden_finance_benchmark_samples()]
+        dataset_service.bulk_create_samples(dataset.id, payloads)
+
+
 def seed_prompts() -> None:
     with get_session() as session:
         prompt_service = PromptService(session)
@@ -116,6 +136,7 @@ def main() -> None:
     cleanup_legacy_demo()
     seed_badcase_tags()
     seed_dataset()
+    seed_hidden_finance_dataset()
     seed_prompts()
     print("Seed completed.")
 

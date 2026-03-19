@@ -29,7 +29,8 @@ def test_rule_based_scores_high_for_grounded_answer():
 def test_build_judge_prompt_contains_core_fields():
     service = Evaluator()
     sample = make_sample()
-    prompt = service.build_judge_prompt(sample, "这是一个测试回答。")
+    prompt = service.build_judge_prompt(sample, "这是一个测试回答。", benchmark_focus="Benchmark profile: 通用搜索问答基准")
     assert "Question:" in prompt
     assert "Context:" in prompt
     assert "Candidate answer:" in prompt
+    assert "Additional benchmark guidance:" in prompt

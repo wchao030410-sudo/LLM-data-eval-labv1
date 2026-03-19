@@ -1,0 +1,24 @@
+[theme]
+base = "dark"
+primaryColor = "#72e3ff"
+backgroundColor = "#061322"
+secondaryBackgroundColor = "#0f2238"
+textColor = "#eef6ff"
+linkColor = "#8fd4ff"
+codeBackgroundColor = "#0b1b2e"
+borderColor = "#274b6d"
+dataframeBorderColor = "#305f89"
+dataframeHeaderBackgroundColor = "#133453"
+showWidgetBorder = true
+showSidebarBorder = true
+chartCategoricalColors = ["#72e3ff", "#5f7cff", "#62f2c2", "#ffc977", "#ff7ea7"]
+
+[theme.sidebar]
+backgroundColor = "#081526"
+secondaryBackgroundColor = "#10243b"
+textColor = "#f3f8ff"
+linkColor = "#9fd8ff"
+borderColor = "#284a69"
+dataframeBorderColor = "#305f89"
+dataframeHeaderBackgroundColor = "#133453"
+showWidgetBorder = true
